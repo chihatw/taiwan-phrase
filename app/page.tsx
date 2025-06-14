@@ -130,7 +130,9 @@ export default function Home() {
           v.lang.startsWith('zh') &&
           (v.name.includes('女') ||
             v.name.toLowerCase().includes('female') ||
-            v.voiceURI.toLowerCase().includes('female'))
+            v.voiceURI.toLowerCase().includes('female') ||
+            v.name.includes('Google 普通话（女声）') || // Chrome用
+            v.name.includes('Google 中文（普通话）')) // Chrome用
       );
       if (femaleZhVoice) {
         utterance.voice = femaleZhVoice;
