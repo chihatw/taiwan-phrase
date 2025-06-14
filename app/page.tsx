@@ -16,6 +16,13 @@ const phrases = [
     pinyin: 'bù hǎo yìsi (ブー⁴・ハオ³・イース⁵)',
     japanese: 'すみません（軽い謝罪・声かけ）',
   },
+  {
+    category: '感謝・謝罪',
+    chinese: '不好意思，我聽不懂',
+    pinyin:
+      'bù hǎo yìsi, wǒ tīng bù dǒng (ブー⁴・ハオ³・イース⁵, ウォ³・ティン¹・ブー⁴・ドン³)',
+    japanese: 'ごめんなさい。わかりません',
+  },
   { category: '返事', chinese: '好', pinyin: 'hǎo (ハオ³)', japanese: 'OK' },
   {
     category: '返事',
@@ -78,6 +85,19 @@ const phrases = [
     japanese: '高いです',
   },
   {
+    category: 'お店',
+    chinese: '可以使用信用卡嗎？',
+    pinyin:
+      'kěyǐ shǐyòng xìnyòngkǎ ma? (クォ⁴・イー³・シー³・ヨン⁴・シン⁴・ヨン⁴・カァ⁴・マ？)',
+    japanese: 'カード使えますか',
+  },
+  {
+    category: 'お店',
+    chinese: '我要小的',
+    pinyin: 'wǒ yào xiǎo de (ウォ³・ヤオ⁴・シャオ³・ドゥ)',
+    japanese: '小さい方をください',
+  },
+  {
     category: 'リアクション',
     chinese: '好吃',
     pinyin: 'hǎochī (ハオ³・チー¹)',
@@ -94,6 +114,20 @@ const phrases = [
     chinese: '棒',
     pinyin: 'bàng (バン⁴)',
     japanese: 'すごい！素晴らしい！',
+  },
+  {
+    category: '移動',
+    chinese: '我想要去這裡',
+    pinyin:
+      'wǒ xiǎng yào qù zhèlǐ (ウォ³・シアン³・ヤオ⁴・チュイ⁴・ヂャ⁴・リー³)',
+    japanese: 'ここに行きたいです',
+  },
+  {
+    category: '移動',
+    chinese: '我想要去車站',
+    pinyin:
+      'wǒ xiǎng yào qù chēzhàn (ウォ³・シアン³・ヤオ⁴・チュイ⁴・チャ¹・ヂャン⁴)',
+    japanese: '駅に行きたいです',
   },
 ];
 
