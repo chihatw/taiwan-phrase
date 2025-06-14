@@ -142,16 +142,16 @@ const phrases = [
   {
     id: 19,
     category: '移動',
-    chinese: '我想去這裡',
-    pinyin: 'wǒ xiǎng qù zhèlǐ (ウォ³・シアン³・チュイ⁴・ヂャ⁴・リー³)',
-    japanese: 'ここに行きたいです',
+    chinese: '我想去',
+    pinyin: 'wǒ xiǎng qù (ウォ³・シアン³・チュイ⁴)',
+    japanese: '行きたいです',
   },
   {
     id: 20,
     category: '移動',
-    chinese: '我想去車站',
-    pinyin: 'wǒ xiǎng qù chēzhàn (ウォ³・シアン³・チュイ⁴・チャ¹・ヂャン⁴)',
-    japanese: '駅に行きたいです',
+    chinese: '我想去這裡',
+    pinyin: 'wǒ xiǎng qù zhèlǐ (ウォ³・シアン³・チュイ⁴・ヂャ⁴・リー³)',
+    japanese: 'ここに行きたいです',
   },
 ];
 
