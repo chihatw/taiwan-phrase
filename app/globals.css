@@ -1,4 +1,5 @@
-@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@300;400;500;700;800;900&display=swap');
+@import 'tailwindcss';
 
 :root {
   --background: #ffffff;
@@ -8,8 +9,6 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -19,8 +18,43 @@
   }
 }
 
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background-image: url('https://images.unsplash.com/photo-1601534622119-e9b3aa7c7bdf?auto=format&fit=crop&w=1500&q=80');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  filter: grayscale(100%);
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  opacity: 1;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: 'M PLUS Rounded 1c', Arial, Helvetica, 'Noto Sans', sans-serif;
+  min-height: 100vh;
+  height: 100vh;
+}
+
+.card-glass {
+  background: rgba(255, 255, 255, 0.38); /* 白濁感を強める */
+  box-shadow: 0 4px 32px 0 rgba(31, 38, 135, 0.18);
+  border-radius: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.45); /* 枠も少し白く */
+  backdrop-filter: blur(12px) saturate(180%);
+  -webkit-backdrop-filter: blur(12px) saturate(180%);
+  filter: none;
+  color: #111;
+  text-shadow: 0 1px 4px rgba(255, 255, 255, 0.5);
+}
+
+.card-glass * {
+  text-shadow: 0 1px 4px rgba(255, 255, 255, 0.5);
 }

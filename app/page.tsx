@@ -1,103 +1,212 @@
-import Image from "next/image";
+'use client';
+
+import { useEffect, useState } from 'react';
+
+// phrases data structure
+const phrases = [
+  {
+    category: '感謝・謝罪',
+    chinese: '謝謝',
+    pinyin: 'xièxiè (シエ⁴・シエ⁴)',
+    japanese: 'ありがとう',
+  },
+  {
+    category: '感謝・謝罪',
+    chinese: '不好意思',
+    pinyin: 'bù hǎo yìsi (ブー⁴・ハオ³・イース⁵)',
+    japanese: 'すみません（軽い謝罪・声かけ）',
+  },
+  { category: '返事', chinese: '好', pinyin: 'hǎo (ハオ³)', japanese: 'OK' },
+  {
+    category: '返事',
+    chinese: '是',
+    pinyin: 'shì (シー⁴)',
+    japanese: 'そうです',
+  },
+  {
+    category: '返事',
+    chinese: '不是',
+    pinyin: 'búshì (ブー²・シー⁴)',
+    japanese: '違います',
+  },
+  {
+    category: 'お店',
+    chinese: '我要',
+    pinyin: 'wǒyào (ウォ³・ヤオ⁴)',
+    japanese: '欲しいです',
+  },
+  {
+    category: 'お店',
+    chinese: '這個',
+    pinyin: 'zhège (ヂャ⁴・グゥ⁵)',
+    japanese: 'これ',
+  },
+  {
+    category: 'お店',
+    chinese: '一個',
+    pinyin: 'yí ge (イー²・グゥ⁵)',
+    japanese: '一個',
+  },
+  {
+    category: 'お店',
+    chinese: '兩個',
+    pinyin: 'liǎng ge (リャン³・グゥ⁵)',
+    japanese: '二個',
+  },
+  {
+    category: 'お店',
+    chinese: '三個',
+    pinyin: 'sān ge (サン¹・グゥ⁵)',
+    japanese: '三個',
+  },
+  {
+    category: 'お店',
+    chinese: '多少錢',
+    pinyin: 'duōshǎoqián (ドゥオ¹・シャオ³・チエン²)',
+    japanese: 'いくらですか',
+  },
+  {
+    category: 'お店',
+    chinese: '不用',
+    pinyin: 'búyòng (ブー²・ヨン⁴)',
+    japanese: '要りません',
+  },
+  {
+    category: 'お店',
+    chinese: '貴',
+    pinyin: 'guì (グイ⁴)',
+    japanese: '高いです',
+  },
+  {
+    category: 'リアクション',
+    chinese: '好吃',
+    pinyin: 'hǎochī (ハオ³・チー¹)',
+    japanese: '美味しいです',
+  },
+  {
+    category: 'リアクション',
+    chinese: '讚',
+    pinyin: 'zàn (ザン⁴)',
+    japanese: '最高！いいね！（賞賛）',
+  },
+  {
+    category: 'リアクション',
+    chinese: '棒',
+    pinyin: 'bàng (バン⁴)',
+    japanese: 'すごい！素晴らしい！',
+  },
+];
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [speechSynthesisSupported, setSpeechSynthesisSupported] =
+    useState(true);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  useEffect(() => {
+    // Check if SpeechSynthesis API is supported
+    if (!('speechSynthesis' in window)) {
+      setSpeechSynthesisSupported(false);
+    }
+  }, []);
+
+  // Function to speak the given text
+  const speakText = (text: string) => {
+    if (speechSynthesisSupported && text) {
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'zh-CN'; // Set language to Chinese (China)
+      utterance.rate = 0.9; // Speech rate
+      utterance.pitch = 1.0; // Speech pitch
+
+      // Cancel any ongoing speech before speaking a new one
+      if (window.speechSynthesis.speaking) {
+        window.speechSynthesis.cancel();
+      }
+      window.speechSynthesis.speak(utterance);
+    }
+  };
+
+  // Group phrases by category
+  const groupedPhrases = phrases.reduce<Record<string, typeof phrases>>(
+    (acc, phrase) => {
+      if (!acc[phrase.category]) {
+        acc[phrase.category] = [];
+      }
+      acc[phrase.category].push(phrase);
+      return acc;
+    },
+    {}
+  );
+
+  return (
+    <div className='flex flex-col items-center min-h-screen p-4 bg-e2e8f0'>
+      {/* Main Title */}
+      <h1 className='text-4xl text-center text-gray-900 mb-12 leading-tight main-title font-extralight'>
+        台湾旅行で使えるフレーズ
+      </h1>
+
+      {/* Warning message for unsupported browsers */}
+      {!speechSynthesisSupported && (
+        <div
+          className='bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mt-8 mx-auto w-full max-w-lg'
+          role='alert'
+        >
+          <strong className='font-bold'>注意: </strong>
+          <span className='block sm:inline'>
+            お使いのブラウザは音声合成をサポートしていません。最新のChromeやEdgeなどをお試しください。
+          </span>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      )}
+
+      {/* Phrases Container */}
+      <div className='max-w-5xl w-full mx-auto p-4 container'>
+        {Object.keys(groupedPhrases).map((category) => (
+          <div key={category}>
+            {/* Section Title */}
+            <h2 className='text-4xl text-gray-900 mt-12 mb-8 text-center leading-tight section-title'>
+              【{category}】
+            </h2>
+            {/* Phrase Cards */}
+            {groupedPhrases[category].map((phrase, index) => (
+              <div
+                key={index}
+                className='bg-white/80 rounded-xl p-6 shadow-xl flex flex-col items-center space-y-4 sm:flex-row sm:justify-between sm:space-y-0 sm:space-x-6 mb-6 phrase-card'
+              >
+                <div className='flex-grow text-center sm:text-left phrase-content'>
+                  <div className='text-5xl text-orange-700 font-bold break-words leading-tight mb-2 chinese-text'>
+                    {phrase.chinese}
+                  </div>
+                  <div className='text-2xl text-orange-600 font-bold mb-1 pinyin-text'>
+                    {phrase.pinyin}
+                  </div>
+                  <div className='text-lg text-amber-800 japanese-text'>
+                    {phrase.japanese}
+                  </div>
+                </div>
+                <button
+                  className='bg-orange-700 hover:bg-orange-600 text-white p-3 rounded-full shadow-lg transition duration-300 ease-in-out transform hover:scale-110 flex-shrink-0 play-icon-button'
+                  onClick={() => speakText(phrase.chinese)}
+                  disabled={!speechSynthesisSupported}
+                  aria-label='発音を聞く'
+                >
+                  {/* SVG Speaker Icon（オーソドックスな形） */}
+                  <svg
+                    xmlns='http://www.w3.org/2000/svg'
+                    fill='none'
+                    viewBox='0 0 24 24'
+                    width='24'
+                    height='24'
+                  >
+                    <path fill='currentColor' d='M5 9v6h4l5 5V4l-5 5H5z' />
+                    <path
+                      fill='currentColor'
+                      d='M16.5 12a4.5 4.5 0 0 0-1.5-3.36v6.72A4.5 4.5 0 0 0 16.5 12z'
+                    />
+                  </svg>
+                </button>
+              </div>
+            ))}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
