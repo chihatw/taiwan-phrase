@@ -122,6 +122,23 @@ export default function Home() {
       utterance.lang = 'zh-CN';
       utterance.rate = 0.9;
       utterance.pitch = 1.0;
+      // 女性中国語ボイスを選択
+      const voices = window.speechSynthesis.getVoices();
+      // 女性かつ中国語のボイスを優先的に選択
+      const femaleZhVoice = voices.find(
+        (v) =>
+          v.lang.startsWith('zh') &&
+          (v.name.includes('女') ||
+            v.name.toLowerCase().includes('female') ||
+            v.voiceURI.toLowerCase().includes('female'))
+      );
+      if (femaleZhVoice) {
+        utterance.voice = femaleZhVoice;
+      } else {
+        // 女性でなくても中国語ボイスがあれば使う
+        const zhVoice = voices.find((v) => v.lang.startsWith('zh'));
+        if (zhVoice) utterance.voice = zhVoice;
+      }
       utterance.onend = () => setLoadingIndex(null); // 再生終了時にローディング解除
       utterance.onerror = () => setLoadingIndex(null); // エラー時も解除
       utteranceRef.current = utterance;
