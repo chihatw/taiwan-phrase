@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 // phrases data structure
 const phrases = [
@@ -100,23 +100,31 @@ const phrases = [
 export default function Home() {
   const [speechSynthesisSupported, setSpeechSynthesisSupported] =
     useState(true);
+  const [loadingIndex, setLoadingIndex] = useState<number | null>(null); // 追加: ローディング状態
+  const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
 
   useEffect(() => {
     // Check if SpeechSynthesis API is supported
     if (!('speechSynthesis' in window)) {
       setSpeechSynthesisSupported(false);
     }
+    // クリーンアップ: ページ離脱時に再生停止
+    return () => {
+      window.speechSynthesis.cancel();
+    };
   }, []);
 
   // Function to speak the given text
-  const speakText = (text: string) => {
+  const speakText = (text: string, index: number) => {
     if (speechSynthesisSupported && text) {
+      setLoadingIndex(index); // ローディング開始
       const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = 'zh-CN'; // Set language to Chinese (China)
-      utterance.rate = 0.9; // Speech rate
-      utterance.pitch = 1.0; // Speech pitch
-
-      // Cancel any ongoing speech before speaking a new one
+      utterance.lang = 'zh-CN';
+      utterance.rate = 0.9;
+      utterance.pitch = 1.0;
+      utterance.onend = () => setLoadingIndex(null); // 再生終了時にローディング解除
+      utterance.onerror = () => setLoadingIndex(null); // エラー時も解除
+      utteranceRef.current = utterance;
       if (window.speechSynthesis.speaking) {
         window.speechSynthesis.cancel();
       }
@@ -171,36 +179,58 @@ export default function Home() {
                 className='bg-white/80 rounded-xl p-6 shadow-xl flex flex-col items-center space-y-4 sm:flex-row sm:justify-between sm:space-y-0 sm:space-x-6 mb-6 phrase-card'
               >
                 <div className='flex-grow text-center sm:text-left phrase-content'>
-                  <div className='text-5xl text-orange-700 font-bold break-words leading-tight mb-2 chinese-text'>
+                  <div className='text-5xl text-gray-800 font-bold break-words leading-tight mb-2 chinese-text'>
                     {phrase.chinese}
                   </div>
-                  <div className='text-2xl text-orange-600 font-bold mb-1 pinyin-text'>
+                  <div className='text-2xl text-blue-600 font-semibold mb-1 pinyin-text'>
                     {phrase.pinyin}
                   </div>
-                  <div className='text-lg text-amber-800 japanese-text'>
+                  <div className='text-lg text-neutral-500 japanese-text'>
                     {phrase.japanese}
                   </div>
                 </div>
                 <button
-                  className='bg-orange-700 hover:bg-orange-600 text-white p-3 rounded-full shadow-lg transition duration-300 ease-in-out transform hover:scale-110 flex-shrink-0 play-icon-button'
-                  onClick={() => speakText(phrase.chinese)}
-                  disabled={!speechSynthesisSupported}
+                  className='bg-blue-800 hover:bg-blue-600 text-white p-3 rounded-full shadow-lg transition duration-300 ease-in-out transform hover:scale-110 flex-shrink-0 play-icon-button relative min-w-[48px] min-h-[48px]'
+                  onClick={() => speakText(phrase.chinese, index)}
+                  disabled={!speechSynthesisSupported || loadingIndex !== null}
                   aria-label='発音を聞く'
                 >
-                  {/* SVG Speaker Icon（オーソドックスな形） */}
-                  <svg
-                    xmlns='http://www.w3.org/2000/svg'
-                    fill='none'
-                    viewBox='0 0 24 24'
-                    width='24'
-                    height='24'
-                  >
-                    <path fill='currentColor' d='M5 9v6h4l5 5V4l-5 5H5z' />
-                    <path
-                      fill='currentColor'
-                      d='M16.5 12a4.5 4.5 0 0 0-1.5-3.36v6.72A4.5 4.5 0 0 0 16.5 12z'
-                    />
-                  </svg>
+                  {loadingIndex === index ? (
+                    // ローディング中のスピナー
+                    <svg
+                      className='animate-spin mx-auto'
+                      width='24'
+                      height='24'
+                      viewBox='0 0 24 24'
+                    >
+                      <circle
+                        cx='12'
+                        cy='12'
+                        r='10'
+                        stroke='white'
+                        strokeWidth='4'
+                        fill='none'
+                        opacity='0.3'
+                      />
+                      <path
+                        d='M12 2a10 10 0 0 1 10 10'
+                        stroke='white'
+                        strokeWidth='4'
+                        fill='none'
+                      />
+                    </svg>
+                  ) : (
+                    // SVG Play Icon
+                    <svg
+                      xmlns='http://www.w3.org/2000/svg'
+                      fill='none'
+                      viewBox='0 0 24 24'
+                      width='24'
+                      height='24'
+                    >
+                      <polygon points='6,4 20,12 6,20' fill='currentColor' />
+                    </svg>
+                  )}
                 </button>
               </div>
             ))}
