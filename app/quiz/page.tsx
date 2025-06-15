@@ -116,7 +116,7 @@ function QuizPageContent() {
           <PlayButton
             onClick={speak}
             size={24}
-            className='mb-2'
+            className='min-w-[48px] min-h-[48px] p-3'
             disabled={loading}
           />
           <div className='flex flex-col gap-3 w-full'>

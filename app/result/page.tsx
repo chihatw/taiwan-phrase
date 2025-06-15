@@ -54,7 +54,11 @@ function ResultPageContent() {
                 <CardContent className='flex flex-col gap-1 py-3 px-4'>
                   <div className='flex items-center gap-2'>
                     <span className='font-bold'>{i + 1}.</span>
-                    <PlayButton onClick={() => speak(a.correct)} size={24} />
+                    <PlayButton
+                      onClick={() => speak(a.correct)}
+                      size={24}
+                      className='min-w-[48px] min-h-[48px] p-3'
+                    />
                     <span>正答: {a.correct}</span>
                   </div>
                   <div>
