@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { PlayButton } from '@/components/ui/play-button';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { Suspense } from 'react';
 import { numberToChinese } from '../quiz/quizUtils';
 
 const LEVEL_LABELS = {
@@ -16,7 +17,7 @@ type Answer = {
   correct: number;
 };
 
-export default function ResultPage() {
+function ResultPageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const level = (searchParams.get('level') ||
@@ -84,5 +85,13 @@ export default function ResultPage() {
         </CardContent>
       </Card>
     </main>
+  );
+}
+
+export default function ResultPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <ResultPageContent />
+    </Suspense>
   );
 }

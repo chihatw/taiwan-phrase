@@ -4,7 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { PlayButton } from '@/components/ui/play-button';
 import { ProgressBar } from '@/components/ui/ProgressBar';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useRef, useState } from 'react';
+import { Suspense, useEffect, useRef, useState } from 'react';
 import { generateQuizSet, numberToChinese } from './quizUtils';
 
 const LEVEL_LABELS = {
@@ -18,7 +18,7 @@ type Quiz = {
   choices: number[];
 };
 
-export default function QuizPage() {
+function QuizPageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const level = (searchParams.get('level') ||
@@ -153,5 +153,13 @@ export default function QuizPage() {
         </CardContent>
       </Card>
     </main>
+  );
+}
+
+export default function QuizPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <QuizPageContent />
+    </Suspense>
   );
 }

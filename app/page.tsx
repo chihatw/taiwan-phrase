@@ -8,7 +8,7 @@ import { phrases } from './phrases';
 export default function Home() {
   const [speechSynthesisSupported, setSpeechSynthesisSupported] =
     useState(true);
-  const [loadingIndex, setLoadingIndex] = useState<number | null>(null); // 追加: ローディング状態
+
   const [modalPhrase, setModalPhrase] = useState<(typeof phrases)[0] | null>(
     null
   );
@@ -28,9 +28,8 @@ export default function Home() {
   }, []);
 
   // Function to speak the given text
-  const speakText = (text: string, index: number) => {
+  const speakText = (text: string) => {
     if (speechSynthesisSupported && text) {
-      setLoadingIndex(index); // ローディング開始
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.lang = 'zh-CN';
       utterance.rate = 0.9;
@@ -54,8 +53,8 @@ export default function Home() {
         const zhVoice = voices.find((v) => v.lang.startsWith('zh'));
         if (zhVoice) utterance.voice = zhVoice;
       }
-      utterance.onend = () => setLoadingIndex(null); // 再生終了時にローディング解除
-      utterance.onerror = () => setLoadingIndex(null); // エラー時も解除
+      utterance.onend = () => {}; // 再生終了時にローディング解除
+      utterance.onerror = () => {}; // エラー時も解除
       utteranceRef.current = utterance;
       if (window.speechSynthesis.speaking) {
         window.speechSynthesis.cancel();
@@ -123,7 +122,7 @@ export default function Home() {
               【{category}】
             </h2>
             {/* Phrase Cards */}
-            {groupedPhrases[category].map((phrase, index) => (
+            {groupedPhrases[category].map((phrase) => (
               <div
                 key={phrase.id}
                 className={`bg-white/80 rounded-xl p-6 shadow-xl flex flex-col items-center space-y-4 sm:flex-row sm:justify-between sm:space-y-0 sm:space-x-6 mb-6 phrase-card relative`}
@@ -160,7 +159,7 @@ export default function Home() {
                   </div>
                 </div>
                 <PlayButton
-                  onClick={() => speakText(phrase.chinese, index)}
+                  onClick={() => speakText(phrase.chinese)}
                   disabled={!speechSynthesisSupported}
                   size={24}
                   ariaLabel='発音を聞く'
@@ -199,7 +198,7 @@ export default function Home() {
               {modalPhrase.japanese}
             </div>
             <PlayButton
-              onClick={() => speakText(modalPhrase.chinese, modalPhrase.id)}
+              onClick={() => speakText(modalPhrase.chinese)}
               disabled={!speechSynthesisSupported}
               size={24}
               ariaLabel='発音を聞く'
