@@ -8,6 +8,10 @@ export function numberToChinese(num: number): string {
   if (num >= 100) {
     str += digits[Math.floor(num / 100)] + '百';
     num %= 100;
+    // 十の位が0かつ一の位が0でない場合は零を挿入
+    if (num < 10 && num > 0) {
+      str += '零';
+    }
   }
   if (num >= 10) {
     str += digits[Math.floor(num / 10)] + '十';
