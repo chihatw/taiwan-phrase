@@ -2,7 +2,49 @@
 
 // 数字→中国語表記
 export function numberToChinese(num: number): string {
-  if (num === 200) return '兩百'; // 台湾でよく使う
+  // 200-299 の百の位は「兩百」
+  if (num >= 200 && num < 300) {
+    let str = '兩百';
+    num %= 100;
+    // 十の位が0かつ一の位が0でない場合は零を挿入
+    if (num < 10 && num > 0) {
+      str += '零';
+    }
+    if (num >= 10) {
+      const digits = [
+        '零',
+        '一',
+        '二',
+        '三',
+        '四',
+        '五',
+        '六',
+        '七',
+        '八',
+        '九',
+      ];
+      str += digits[Math.floor(num / 10)] + '十';
+      num %= 10;
+    }
+    if (num > 0) {
+      const digits = [
+        '零',
+        '一',
+        '二',
+        '三',
+        '四',
+        '五',
+        '六',
+        '七',
+        '八',
+        '九',
+      ];
+      str += digits[num];
+    }
+    if (str.endsWith('零')) str = str.slice(0, -1);
+    return str;
+  }
+  if (num === 200) return '兩百'; // 念のため
   const digits = ['零', '一', '二', '三', '四', '五', '六', '七', '八', '九'];
   let str = '';
   if (num >= 100) {
