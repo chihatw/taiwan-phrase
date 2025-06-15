@@ -53,15 +53,25 @@ export default function ResultPage() {
                 <CardContent className='flex flex-col gap-1 py-3 px-4'>
                   <div className='flex items-center gap-2'>
                     <span className='font-bold'>{i + 1}.</span>
-                    <PlayButton onClick={() => speak(a.correct)} size={36} />
+                    <PlayButton onClick={() => speak(a.correct)} size={24} />
                     <span>正答: {a.correct}</span>
                   </div>
                   <div>
                     あなたの答え: {a.selected !== null ? a.selected : '未選択'}
                     {a.selected === a.correct ? (
-                      <span className='text-green-600 font-bold ml-2'>◯</span>
+                      <span
+                        className='ml-3 inline-flex items-center justify-center rounded-full bg-green-100 text-green-700 font-extrabold text-2xl shadow px-4 py-1 animate-pulse'
+                        aria-label='正解'
+                      >
+                        ◯
+                      </span>
                     ) : (
-                      <span className='text-red-600 font-bold ml-2'>×</span>
+                      <span
+                        className='ml-3 inline-flex items-center justify-center rounded-full bg-red-100 text-red-700 font-extrabold text-2xl shadow px-4 py-1 animate-pulse'
+                        aria-label='不正解'
+                      >
+                        ×
+                      </span>
                     )}
                   </div>
                 </CardContent>

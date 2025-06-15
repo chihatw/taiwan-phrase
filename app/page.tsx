@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { Button } from '../components/ui/button';
+import { PlayButton } from '../components/ui/play-button';
 import { phrases } from './phrases';
 
 export default function Home() {
@@ -88,6 +90,16 @@ export default function Home() {
       <h1 className='text-4xl text-center text-gray-900 mb-12 leading-tight main-title font-extralight'>
         台湾旅行で使えるフレーズ
       </h1>
+      <Button
+        size={'lg'}
+        className='mb-8 w-full max-w-lg'
+        variant='outline'
+        onClick={() => {
+          window.location.href = '/drill';
+        }}
+      >
+        「多少錢？」聞き取り特訓🔥
+      </Button>
 
       {/* Warning message for unsupported browsers */}
       {!speechSynthesisSupported && (
@@ -147,49 +159,13 @@ export default function Home() {
                     {phrase.japanese}
                   </div>
                 </div>
-                <button
-                  className='bg-blue-800 hover:bg-blue-600 text-white p-3 rounded-full shadow-lg transition duration-300 ease-in-out transform hover:scale-110 flex-shrink-0 play-icon-button relative min-w-[48px] min-h-[48px]'
+                <PlayButton
                   onClick={() => speakText(phrase.chinese, index)}
-                  disabled={!speechSynthesisSupported || loadingIndex !== null}
-                  aria-label='発音を聞く'
-                >
-                  {loadingIndex === index ? (
-                    // ローディング中のスピナー
-                    <svg
-                      className='animate-spin mx-auto'
-                      width='24'
-                      height='24'
-                      viewBox='0 0 24 24'
-                    >
-                      <circle
-                        cx='12'
-                        cy='12'
-                        r='10'
-                        stroke='white'
-                        strokeWidth='4'
-                        fill='none'
-                        opacity='0.3'
-                      />
-                      <path
-                        d='M12 2a10 10 0 0 1 10 10'
-                        stroke='white'
-                        strokeWidth='4'
-                        fill='none'
-                      />
-                    </svg>
-                  ) : (
-                    // SVG Play Icon
-                    <svg
-                      xmlns='http://www.w3.org/2000/svg'
-                      fill='none'
-                      viewBox='0 0 24 24'
-                      width='24'
-                      height='24'
-                    >
-                      <polygon points='6,4 20,12 6,20' fill='currentColor' />
-                    </svg>
-                  )}
-                </button>
+                  disabled={!speechSynthesisSupported}
+                  size={24}
+                  ariaLabel='発音を聞く'
+                  className='min-w-[48px] min-h-[48px] p-3'
+                />
               </div>
             ))}
           </div>
@@ -222,47 +198,13 @@ export default function Home() {
             <div className='text-lg text-neutral-500 mb-4 text-center'>
               {modalPhrase.japanese}
             </div>
-            <button
-              className='bg-blue-800 hover:bg-blue-600 text-white p-3 rounded-full shadow-lg transition duration-300 ease-in-out transform hover:scale-110 mx-auto block min-w-[48px] min-h-[48px]'
+            <PlayButton
               onClick={() => speakText(modalPhrase.chinese, modalPhrase.id)}
-              disabled={!speechSynthesisSupported || loadingIndex !== null}
-              aria-label='発音を聞く'
-            >
-              {loadingIndex === modalPhrase.id ? (
-                <svg
-                  className='animate-spin mx-auto'
-                  width='24'
-                  height='24'
-                  viewBox='0 0 24 24'
-                >
-                  <circle
-                    cx='12'
-                    cy='12'
-                    r='10'
-                    stroke='white'
-                    strokeWidth='4'
-                    fill='none'
-                    opacity='0.3'
-                  />
-                  <path
-                    d='M12 2a10 10 0 0 1 10 10'
-                    stroke='white'
-                    strokeWidth='4'
-                    fill='none'
-                  />
-                </svg>
-              ) : (
-                <svg
-                  xmlns='http://www.w3.org/2000/svg'
-                  fill='none'
-                  viewBox='0 0 24 24'
-                  width='24'
-                  height='24'
-                >
-                  <polygon points='6,4 20,12 6,20' fill='currentColor' />
-                </svg>
-              )}
-            </button>
+              disabled={!speechSynthesisSupported}
+              size={24}
+              ariaLabel='発音を聞く'
+              className='mx-auto block min-w-[48px] min-h-[48px] p-3'
+            />
           </div>
         </div>
       )}

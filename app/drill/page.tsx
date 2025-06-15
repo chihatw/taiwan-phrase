@@ -2,9 +2,9 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 
 const levels = [
-  { label: '甘口', value: 'easy' },
-  { label: '中辛', value: 'medium' },
-  { label: '激辛', value: 'hard' },
+  { label: '初級', value: 'easy' },
+  { label: '中級', value: 'medium' },
+  { label: '上級', value: 'hard' },
 ];
 
 export default function Home() {
@@ -12,7 +12,7 @@ export default function Home() {
     <main className='flex flex-col items-center justify-center min-h-screen gap-8'>
       <div className='rounded-xl bg-white/80 p-8 shadow-md flex flex-col items-center'>
         <h1 className='text-3xl font-bold tracking-tight mb-2'>
-          「多少錢？」返答の聞き取り特訓🔥
+          「多少錢？」聞き取り特訓🔥
         </h1>
         <div className='flex flex-col gap-4 w-72'>
           {levels.map((level) => (
