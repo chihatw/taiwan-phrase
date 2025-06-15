@@ -20,11 +20,11 @@ type Answer = {
 function ResultPageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const level = (searchParams.get('level') ||
+  const level = (searchParams?.get('level') ||
     'easy') as keyof typeof LEVEL_LABELS;
   const answers: Answer[] = (() => {
     try {
-      return JSON.parse(searchParams.get('answers') || '[]');
+      return JSON.parse(searchParams?.get('answers') || '[]');
     } catch {
       return [];
     }

@@ -21,7 +21,7 @@ type Quiz = {
 function QuizPageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const level = (searchParams.get('level') ||
+  const level = ((searchParams && searchParams.get('level')) ||
     'easy') as keyof typeof LEVEL_LABELS;
 
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
@@ -44,6 +44,12 @@ function QuizPageContent() {
 
   useEffect(() => {
     if (showResult) {
+      // メール送信APIを呼び出す
+      fetch('/api/send-summary', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ level, answers }),
+      });
       router.push(
         `/result?level=${level}&answers=${encodeURIComponent(
           JSON.stringify(answers)
