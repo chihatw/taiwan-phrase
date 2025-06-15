@@ -22,7 +22,7 @@ export default function Home() {
           ))}
         </div>
         <Button asChild size='lg' variant='secondary' className='w-full mt-6'>
-          <Link href='/'>特訓終了</Link>
+          <Link href='/'>終了</Link>
         </Button>
       </div>
     </main>
