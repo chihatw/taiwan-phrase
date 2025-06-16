@@ -1,4 +1,3 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
 import nodemailer from 'nodemailer';
 
 // Mailgun SMTP情報を環境変数から取得
@@ -13,23 +12,17 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ message: 'Method not allowed' });
-  }
-  const { level, answers } = req.body;
+export async function POST(req: Request) {
   try {
+    const { level, answers } = await req.json();
     await transporter.sendMail({
       from: `Quiz App <${MAILGUN_USER}>`,
       to: 'chiha.tw@gmail.com',
       subject: 'クイズ結果サマリー',
       text: `レベル: ${level}\n回答: ${JSON.stringify(answers, null, 2)}`,
     });
-    res.status(200).json({ message: 'メール送信成功' });
+    return Response.json({ message: 'メール送信成功' }, { status: 200 });
   } catch (error) {
-    res.status(500).json({ message: 'メール送信失敗', error });
+    return Response.json({ message: 'メール送信失敗', error }, { status: 500 });
   }
 }
