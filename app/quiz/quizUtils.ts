@@ -106,11 +106,60 @@ export function generateQuizSet(level: 'easy' | 'medium' | 'hard', count = 7) {
     used.add(answer);
     // 選択肢生成
     const choices = [answer];
-    while (choices.length < 4) {
-      const c = pool[Math.floor(Math.random() * pool.length)];
-      if (!choices.includes(c)) choices.push(c);
+    if (level === 'medium') {
+      // 百の位が2種類になるようにする
+      const answerHundred = Math.floor(answer / 100);
+      // 他の百の位候補を取得
+      const otherHundreds = Array.from(
+        new Set(pool.map((n) => Math.floor(n / 100)))
+      ).filter((h) => h !== answerHundred);
+      // ランダムにもう1つ百の位を選ぶ
+      const secondHundred =
+        otherHundreds[Math.floor(Math.random() * otherHundreds.length)];
+      // 2種類の百の位を持つ数字だけを候補に
+      const twoHundredPool = pool.filter((n) => {
+        const h = Math.floor(n / 100);
+        return h === answerHundred || h === secondHundred;
+      });
+      while (choices.length < 4 && twoHundredPool.length > choices.length) {
+        const c =
+          twoHundredPool[Math.floor(Math.random() * twoHundredPool.length)];
+        if (!choices.includes(c)) choices.push(c);
+      }
+    } else if (level === 'hard') {
+      // hard: 百の位・十の位が多くて2種類
+      const answerHundred = Math.floor(answer / 100);
+      const answerTen = Math.floor((answer % 100) / 10);
+      // 百の位候補
+      const otherHundreds = Array.from(
+        new Set(pool.map((n) => Math.floor(n / 100)))
+      ).filter((h) => h !== answerHundred);
+      const secondHundred =
+        otherHundreds[Math.floor(Math.random() * otherHundreds.length)];
+      // 十の位候補
+      const otherTens = Array.from(
+        new Set(pool.map((n) => Math.floor((n % 100) / 10)))
+      ).filter((t) => t !== answerTen);
+      const secondTen = otherTens[Math.floor(Math.random() * otherTens.length)];
+      // 2種類の百の位、2種類の十の位の組み合わせのみ許可
+      const filteredPool = pool.filter((n) => {
+        const h = Math.floor(n / 100);
+        const t = Math.floor((n % 100) / 10);
+        return (
+          (h === answerHundred || h === secondHundred) &&
+          (t === answerTen || t === secondTen)
+        );
+      });
+      while (choices.length < 4 && filteredPool.length > choices.length) {
+        const c = filteredPool[Math.floor(Math.random() * filteredPool.length)];
+        if (!choices.includes(c)) choices.push(c);
+      }
+    } else {
+      while (choices.length < 4) {
+        const c = pool[Math.floor(Math.random() * pool.length)];
+        if (!choices.includes(c)) choices.push(c);
+      }
     }
-
     questions.push({
       answer,
       choices: shuffleArray(choices),

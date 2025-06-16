@@ -21,8 +21,14 @@ export async function POST(req: Request) {
       subject: 'クイズ結果サマリー',
       text: `レベル: ${level}\n回答: ${JSON.stringify(answers, null, 2)}`,
     });
-    return Response.json({ message: 'メール送信成功' }, { status: 200 });
+    return new Response(JSON.stringify({ message: 'メール送信成功' }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
   } catch (error) {
-    return Response.json({ message: 'メール送信失敗', error }, { status: 500 });
+    return new Response(JSON.stringify({ message: 'メール送信失敗', error }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    });
   }
 }
