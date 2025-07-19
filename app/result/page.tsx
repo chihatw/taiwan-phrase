@@ -2,8 +2,9 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { PlayButton } from '@/components/ui/play-button';
+import { speakWithGoogleTTS } from '@/lib/googleTTS';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Suspense } from 'react';
+import { Suspense, useState } from 'react';
 import { numberToChinese } from '../quiz/quizUtils';
 
 const LEVEL_LABELS = {
@@ -32,10 +33,16 @@ function ResultPageContent() {
 
   const correctCount = answers.filter((a) => a.selected === a.correct).length;
 
-  const speak = (num: number) => {
-    const utter = new window.SpeechSynthesisUtterance(numberToChinese(num));
-    utter.lang = 'zh-TW';
-    window.speechSynthesis.speak(utter);
+  const [loading, setLoading] = useState<Record<number, boolean>>({});
+
+  const speak = async (num: number, index: number) => {
+    const text = numberToChinese(num);
+    setLoading((prev) => ({ ...prev, [index]: true }));
+    try {
+      await speakWithGoogleTTS(text);
+    } finally {
+      setLoading((prev) => ({ ...prev, [index]: false }));
+    }
   };
 
   return (
@@ -55,9 +62,10 @@ function ResultPageContent() {
                   <div className='flex items-center gap-2'>
                     <span className='font-bold'>{i + 1}.</span>
                     <PlayButton
-                      onClick={() => speak(a.correct)}
+                      onClick={() => speak(a.correct, i)}
                       size={24}
                       className='min-w-[48px] min-h-[48px] p-3'
+                      loading={loading[i]}
                     />
                     <span>正答: {a.correct}</span>
                   </div>

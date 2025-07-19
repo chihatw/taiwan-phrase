@@ -1,5 +1,6 @@
 'use client';
 
+import { speakWithGoogleTTS } from '@/lib/googleTTS';
 import { useEffect, useRef, useState } from 'react';
 import { Button } from '../components/ui/button';
 import { PlayButton } from '../components/ui/play-button';
@@ -12,7 +13,6 @@ export default function Home() {
     null
   );
 
-  // const [isPlaying, setIsPlaying] = useState<number | null>(null);
   const [playButtonLoading, setPlayButtonLoading] = useState<
     Record<number, boolean>
   >({});
@@ -42,83 +42,22 @@ export default function Home() {
   const speakText = async (text: string, phraseId?: number) => {
     try {
       if (phraseId !== undefined) {
-        // setIsPlaying(phraseId);
+        // 再生ボタンが押されたときに、該当するボタンのローディング状態を true に設定
         setPlayButtonLoading((prev) => ({ ...prev, [phraseId]: true }));
       }
 
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current = null;
-      }
+      await speakWithGoogleTTS(text);
 
-      const response = await fetch('/api/tts', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text }),
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('TTS API Error Response:', {
-          status: response.status,
-          statusText: response.statusText,
-          body: errorText,
-        });
-        throw new Error(
-          `TTS API request failed: ${response.status} ${response.statusText}`
-        );
-      }
-
-      const audioBlob = await response.blob();
-      const audioUrl = URL.createObjectURL(audioBlob);
-      const audio = new Audio(audioUrl);
-
-      audioRef.current = audio;
-
-      audio.onended = () => {
-        // setIsPlaying(null);
-        if (phraseId !== undefined) {
-          setPlayButtonLoading((prev) => ({ ...prev, [phraseId]: false }));
-        }
-        URL.revokeObjectURL(audioUrl);
-      };
-
-      audio.onerror = () => {
-        // setIsPlaying(null);
-        if (phraseId !== undefined) {
-          setPlayButtonLoading((prev) => ({ ...prev, [phraseId]: false }));
-        }
-        URL.revokeObjectURL(audioUrl);
-        fallbackToWebSpeech(text);
-      };
-
-      await audio.play();
-    } catch (error) {
-      console.error('Google TTS playback error:', error);
-      // setIsPlaying(null);
       if (phraseId !== undefined) {
+        // 音声再生が完了した後、該当するボタンのローディング状態を false に設定
         setPlayButtonLoading((prev) => ({ ...prev, [phraseId]: false }));
       }
-      fallbackToWebSpeech(text);
-    }
-  };
-
-  // フォールバック: Web Speech API
-  const fallbackToWebSpeech = (text: string) => {
-    if ('speechSynthesis' in window) {
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = 'zh-TW';
-      utterance.rate = 0.9;
-      utterance.pitch = 1.0;
-
-      const voices = window.speechSynthesis.getVoices();
-      const zhVoice = voices.find((v) => v.lang.startsWith('zh'));
-      if (zhVoice) utterance.voice = zhVoice;
-
-      if (window.speechSynthesis.speaking) {
-        window.speechSynthesis.cancel();
+    } catch (error) {
+      console.error('Google TTS playback error:', error);
+      if (phraseId !== undefined) {
+        // エラーが発生した場合も、該当するボタンのローディング状態を false に設定
+        setPlayButtonLoading((prev) => ({ ...prev, [phraseId]: false }));
       }
-      window.speechSynthesis.speak(utterance);
     }
   };
 

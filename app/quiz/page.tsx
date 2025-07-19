@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { PlayButton } from '@/components/ui/play-button';
 import { ProgressBar } from '@/components/ui/ProgressBar';
+import { speakWithGoogleTTS } from '@/lib/googleTTS';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useState } from 'react';
 import { generateQuizSet, numberToChinese } from './quizUtils';
@@ -31,7 +32,7 @@ function QuizPageContent() {
     { selected: number | null; correct: number }[]
   >([]);
   const [showResult, setShowResult] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     setQuizzes(generateQuizSet(level, 7));
@@ -62,45 +63,13 @@ function QuizPageContent() {
   if (!quizzes.length) return <div>Loading...</div>;
   const quiz = quizzes[current];
 
-  const speakWithGoogleTTS = async (text: string) => {
+  const speak = async (text: string) => {
+    setIsLoading(true);
     try {
-      setLoading(true);
-
-      const response = await fetch('/api/tts', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text }),
-      });
-
-      if (!response.ok) {
-        throw new Error(
-          `TTS API request failed: ${response.status} ${response.statusText}`
-        );
-      }
-
-      const audioBlob = await response.blob();
-      const audioUrl = URL.createObjectURL(audioBlob);
-      const audio = new Audio(audioUrl);
-
-      audio.onended = () => {
-        setLoading(false);
-        URL.revokeObjectURL(audioUrl);
-      };
-
-      audio.onerror = () => {
-        setLoading(false);
-        URL.revokeObjectURL(audioUrl);
-      };
-
-      audio.play();
-    } catch (error) {
-      console.error('Google TTS playback error:', error);
-      setLoading(false);
+      await speakWithGoogleTTS(text);
+    } finally {
+      setIsLoading(false);
     }
-  };
-
-  const speak = () => {
-    speakWithGoogleTTS(numberToChinese(quiz.answer));
   };
 
   const handleSelect = (num: number) => {
@@ -126,11 +95,11 @@ function QuizPageContent() {
             {LEVEL_LABELS[level]} - {current + 1}/7
           </h2>
           <PlayButton
-            onClick={speak}
+            onClick={() => speak(numberToChinese(quiz.answer))}
             size={24}
             className='min-w-[48px] min-h-[48px] p-3'
-            disabled={loading}
-            loading={loading} // loading 状態を渡す
+            disabled={isLoading}
+            loading={isLoading} // Reflect loading state
           />
           <div className='flex flex-col gap-3 w-full'>
             {quiz.choices.map((choice) => (
