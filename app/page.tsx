@@ -8,11 +8,16 @@ import { phrases } from './phrases';
 export default function Home() {
   const [speechSynthesisSupported, setSpeechSynthesisSupported] =
     useState(true);
-
+  const [isAudioSupported, setIsAudioSupported] = useState(true);
+  const [isPlaying, setIsPlaying] = useState<number | null>(null);
+  const [playButtonLoading, setPlayButtonLoading] = useState<
+    Record<number, boolean>
+  >({});
   const [modalPhrase, setModalPhrase] = useState<(typeof phrases)[0] | null>(
     null
   );
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   // カードごとにrefを持つ
   const cardRefs = useRef<Record<number, HTMLDivElement | null>>({});
 
@@ -21,41 +26,96 @@ export default function Home() {
     if (!('speechSynthesis' in window)) {
       setSpeechSynthesisSupported(false);
     }
+    // Audio要素のサポート確認
+    setIsAudioSupported('Audio' in window);
+
     // クリーンアップ: ページ離脱時に再生停止
     return () => {
       window.speechSynthesis.cancel();
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
     };
   }, []);
 
-  // Function to speak the given text
-  const speakText = (text: string) => {
-    if (speechSynthesisSupported && text) {
+  // Google Cloud TTSを使用した音声再生
+  const speakText = async (text: string, phraseId?: number) => {
+    try {
+      if (phraseId !== undefined) {
+        setIsPlaying(phraseId);
+        setPlayButtonLoading((prev) => ({ ...prev, [phraseId]: true }));
+      }
+
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+
+      const response = await fetch('/api/tts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('TTS API Error Response:', {
+          status: response.status,
+          statusText: response.statusText,
+          body: errorText,
+        });
+        throw new Error(
+          `TTS API request failed: ${response.status} ${response.statusText}`
+        );
+      }
+
+      const audioBlob = await response.blob();
+      const audioUrl = URL.createObjectURL(audioBlob);
+      const audio = new Audio(audioUrl);
+
+      audioRef.current = audio;
+
+      audio.onended = () => {
+        setIsPlaying(null);
+        if (phraseId !== undefined) {
+          setPlayButtonLoading((prev) => ({ ...prev, [phraseId]: false }));
+        }
+        URL.revokeObjectURL(audioUrl);
+      };
+
+      audio.onerror = () => {
+        setIsPlaying(null);
+        if (phraseId !== undefined) {
+          setPlayButtonLoading((prev) => ({ ...prev, [phraseId]: false }));
+        }
+        URL.revokeObjectURL(audioUrl);
+        fallbackToWebSpeech(text);
+      };
+
+      await audio.play();
+    } catch (error) {
+      console.error('Google TTS playback error:', error);
+      setIsPlaying(null);
+      if (phraseId !== undefined) {
+        setPlayButtonLoading((prev) => ({ ...prev, [phraseId]: false }));
+      }
+      fallbackToWebSpeech(text);
+    }
+  };
+
+  // フォールバック: Web Speech API
+  const fallbackToWebSpeech = (text: string) => {
+    if ('speechSynthesis' in window) {
       const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = 'zh-CN';
+      utterance.lang = 'zh-TW';
       utterance.rate = 0.9;
       utterance.pitch = 1.0;
-      // 女性中国語ボイスを選択
+
       const voices = window.speechSynthesis.getVoices();
-      // 女性かつ中国語のボイスを優先的に選択
-      const femaleZhVoice = voices.find(
-        (v) =>
-          v.lang.startsWith('zh') &&
-          (v.name.includes('女') ||
-            v.name.toLowerCase().includes('female') ||
-            v.voiceURI.toLowerCase().includes('female') ||
-            v.name.includes('Google 普通话（女声）') || // Chrome用
-            v.name.includes('Google 中文（普通话）')) // Chrome用
-      );
-      if (femaleZhVoice) {
-        utterance.voice = femaleZhVoice;
-      } else {
-        // 女性でなくても中国語ボイスがあれば使う
-        const zhVoice = voices.find((v) => v.lang.startsWith('zh'));
-        if (zhVoice) utterance.voice = zhVoice;
-      }
-      utterance.onend = () => {}; // 再生終了時にローディング解除
-      utterance.onerror = () => {}; // エラー時も解除
-      utteranceRef.current = utterance;
+      const zhVoice = voices.find((v) => v.lang.startsWith('zh'));
+      if (zhVoice) utterance.voice = zhVoice;
+
       if (window.speechSynthesis.speaking) {
         window.speechSynthesis.cancel();
       }
@@ -159,7 +219,7 @@ export default function Home() {
                   </div>
                 </div>
                 <PlayButton
-                  onClick={() => speakText(phrase.chinese)}
+                  onClick={() => speakText(phrase.chinese, phrase.id)}
                   disabled={!speechSynthesisSupported}
                   size={24}
                   ariaLabel='発音を聞く'
@@ -198,7 +258,7 @@ export default function Home() {
               {modalPhrase.japanese}
             </div>
             <PlayButton
-              onClick={() => speakText(modalPhrase.chinese)}
+              onClick={() => speakText(modalPhrase.chinese, modalPhrase.id)}
               disabled={!speechSynthesisSupported}
               size={24}
               ariaLabel='発音を聞く'
