@@ -8,15 +8,14 @@ import { phrases } from './phrases';
 export default function Home() {
   const [speechSynthesisSupported, setSpeechSynthesisSupported] =
     useState(true);
-  const [isAudioSupported, setIsAudioSupported] = useState(true);
-  const [isPlaying, setIsPlaying] = useState<number | null>(null);
-  const [playButtonLoading, setPlayButtonLoading] = useState<
-    Record<number, boolean>
-  >({});
   const [modalPhrase, setModalPhrase] = useState<(typeof phrases)[0] | null>(
     null
   );
-  const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
+
+  // const [isPlaying, setIsPlaying] = useState<number | null>(null);
+  const [playButtonLoading, setPlayButtonLoading] = useState<
+    Record<number, boolean>
+  >({});
   const audioRef = useRef<HTMLAudioElement | null>(null);
   // カードごとにrefを持つ
   const cardRefs = useRef<Record<number, HTMLDivElement | null>>({});
@@ -27,7 +26,7 @@ export default function Home() {
       setSpeechSynthesisSupported(false);
     }
     // Audio要素のサポート確認
-    setIsAudioSupported('Audio' in window);
+    // setIsAudioSupported('Audio' in window);
 
     // クリーンアップ: ページ離脱時に再生停止
     return () => {
@@ -43,7 +42,7 @@ export default function Home() {
   const speakText = async (text: string, phraseId?: number) => {
     try {
       if (phraseId !== undefined) {
-        setIsPlaying(phraseId);
+        // setIsPlaying(phraseId);
         setPlayButtonLoading((prev) => ({ ...prev, [phraseId]: true }));
       }
 
@@ -77,7 +76,7 @@ export default function Home() {
       audioRef.current = audio;
 
       audio.onended = () => {
-        setIsPlaying(null);
+        // setIsPlaying(null);
         if (phraseId !== undefined) {
           setPlayButtonLoading((prev) => ({ ...prev, [phraseId]: false }));
         }
@@ -85,7 +84,7 @@ export default function Home() {
       };
 
       audio.onerror = () => {
-        setIsPlaying(null);
+        // setIsPlaying(null);
         if (phraseId !== undefined) {
           setPlayButtonLoading((prev) => ({ ...prev, [phraseId]: false }));
         }
@@ -96,7 +95,7 @@ export default function Home() {
       await audio.play();
     } catch (error) {
       console.error('Google TTS playback error:', error);
-      setIsPlaying(null);
+      // setIsPlaying(null);
       if (phraseId !== undefined) {
         setPlayButtonLoading((prev) => ({ ...prev, [phraseId]: false }));
       }
@@ -224,6 +223,7 @@ export default function Home() {
                   size={24}
                   ariaLabel='発音を聞く'
                   className='min-w-[48px] min-h-[48px] p-3'
+                  loading={playButtonLoading[phrase.id]} // loading 状態を渡す
                 />
               </div>
             ))}
@@ -263,6 +263,11 @@ export default function Home() {
               size={24}
               ariaLabel='発音を聞く'
               className='mx-auto block min-w-[48px] min-h-[48px] p-3'
+              loading={
+                modalPhrase.id !== undefined
+                  ? playButtonLoading[modalPhrase.id]
+                  : false
+              } // loading 状態を渡す
             />
           </div>
         </div>

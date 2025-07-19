@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 interface PlayButtonProps {
   onClick: () => void;
@@ -18,51 +18,33 @@ export const PlayButton: React.FC<PlayButtonProps> = ({
   loading: externalLoading,
 }) => {
   const [loading, setLoading] = useState(false);
-  const synthRef = useRef<SpeechSynthesis | null>(null);
 
   // 外部からloading状態が提供されている場合はそれを使用、そうでなければ内部状態を使用
   const isLoading = externalLoading !== undefined ? externalLoading : loading;
 
-  // デバッグ用のsetLoadingラッパー
-  const setLoadingWithLog = (value: boolean, source: string) => {
-    console.log(`[PlayButton] setLoading(${value}) called from: ${source}`, {
-      timestamp: new Date().toISOString(),
-      speaking: window.speechSynthesis?.speaking,
-      pending: window.speechSynthesis?.pending,
-      currentLoading: loading,
-    });
-    // 外部制御の場合は内部のsetLoadingは呼ばない
-    if (externalLoading === undefined) {
-      setLoading(value);
-    }
-  };
-
   useEffect(() => {
-    synthRef.current = window.speechSynthesis;
+    const synth = window.speechSynthesis;
     const handleEnd = () => {
-      console.log('[PlayButton] handleEnd triggered by speechSynthesis event');
-      setLoadingWithLog(false, 'speechSynthesis-end-event');
-    };
-    if (synthRef.current) {
-      synthRef.current.addEventListener('end', handleEnd);
-      synthRef.current.addEventListener('voiceschanged', handleEnd);
-    }
-    return () => {
-      if (synthRef.current) {
-        synthRef.current.removeEventListener('end', handleEnd);
-        synthRef.current.removeEventListener('voiceschanged', handleEnd);
+      if (externalLoading === undefined) {
+        setLoading(false);
       }
     };
-  }, []);
+    synth.addEventListener('end', handleEnd);
+    synth.addEventListener('voiceschanged', handleEnd);
+    return () => {
+      synth.removeEventListener('end', handleEnd);
+      synth.removeEventListener('voiceschanged', handleEnd);
+    };
+  }, [externalLoading]);
 
   const handleClick = () => {
-    console.log('[PlayButton] handleClick called');
-    setLoadingWithLog(true, 'handleClick-start');
+    if (externalLoading === undefined) {
+      setLoading(true);
+    }
     onClick();
 
     // 外部制御の場合は内部での状態管理をスキップ
     if (externalLoading !== undefined) {
-      console.log('[PlayButton] Loading state managed by parent component');
       return;
     }
 
@@ -73,27 +55,17 @@ export const PlayButton: React.FC<PlayButtonProps> = ({
       const speaking = window.speechSynthesis.speaking;
       const pending = window.speechSynthesis.pending;
 
-      console.log('[PlayButton] checkWithStartDetection called', {
-        speaking,
-        pending,
-        hasStarted,
-        timestamp: new Date().toISOString(),
-      });
-
       // まだ開始していない場合は開始を待つ
       if (!hasStarted && (speaking || pending)) {
-        console.log('[PlayButton] Speech synthesis started');
         hasStarted = true;
       }
 
       // 開始した後で speaking と pending が両方 false になったら終了
       if (hasStarted && !speaking && !pending) {
-        console.log(
-          '[PlayButton] Speech synthesis finished, setting loading to false'
-        );
-        setLoadingWithLog(false, 'check-function-finished');
+        if (externalLoading === undefined) {
+          setLoading(false);
+        }
       } else if (!hasStarted || speaking || pending) {
-        console.log('[PlayButton] Continuing to monitor speech synthesis');
         setTimeout(checkWithStartDetection, 100);
       }
     };
