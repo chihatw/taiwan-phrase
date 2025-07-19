@@ -1,13 +1,27 @@
 import { TextToSpeechClient } from '@google-cloud/text-to-speech';
 import { NextRequest } from 'next/server';
 
+// 利用可能な音声オプション
+// const availableVoices = [
+//   'cmn-TW-Standard-A',
+//   'cmn-TW-Standard-B',
+//   'cmn-TW-Standard-C',
+//   'cmn-TW-Wavenet-A',
+//   'cmn-TW-Wavenet-B',
+//   'cmn-TW-Wavenet-C',
+// ];
+// 2025/07/19 現在 中国語（台湾） には Neural2 音声がないため、Wavenet音声を使用
+
+const DEFAULT_GENDER = 'FEMALE';
+const DEFAULT_VOICE = 'cmn-TW-Wavenet-A';
+
 // 認証情報を環境変数から取得
 let client: TextToSpeechClient;
 
 try {
   // Base64でエンコードされた認証情報をデコード
   const encodedCredentials = process.env.GOOGLE_APPLICATION_CREDENTIALS;
-  if (encodedCredentials && !encodedCredentials.startsWith('/')) {
+  if (encodedCredentials) {
     // Base64エンコードされたJSONの場合
     const decodedCredentials = Buffer.from(
       encodedCredentials,
@@ -22,11 +36,6 @@ try {
         private_key: credentials.private_key,
       },
     });
-  } else {
-    // ファイルパスの場合
-    client = new TextToSpeechClient({
-      keyFilename: process.env.GOOGLE_APPLICATION_CREDENTIALS,
-    });
   }
 } catch (error) {
   console.error('Failed to initialize Google Cloud client:', error);
@@ -36,7 +45,7 @@ try {
 
 export async function POST(request: NextRequest) {
   try {
-    const { text, voice = 'cmn-TW-Wavenet-A' } = await request.json();
+    const { text } = await request.json();
 
     if (!text) {
       return new Response('Text is required', { status: 400 });
@@ -46,43 +55,19 @@ export async function POST(request: NextRequest) {
       'Attempting to synthesize speech for text:',
       text,
       'with voice:',
-      voice
+      DEFAULT_VOICE
     );
-
-    // 利用可能な音声オプション
-    const availableVoices = [
-      'cmn-TW-Standard-A',
-      'cmn-TW-Standard-B',
-      'cmn-TW-Standard-C',
-      'cmn-TW-Wavenet-A',
-      'cmn-TW-Wavenet-B',
-      'cmn-TW-Wavenet-C',
-      'cmn-TW-Neural2-A',
-      'cmn-TW-Neural2-B',
-      'cmn-TW-Neural2-C',
-      'cmn-TW-Journey-D',
-      'cmn-TW-Journey-F',
-    ];
-
-    // 音声の妥当性チェック
-    const selectedVoice = availableVoices.includes(voice)
-      ? voice
-      : 'cmn-TW-Wavenet-A';
-    const gender =
-      selectedVoice.includes('-A') || selectedVoice.includes('-F')
-        ? 'FEMALE'
-        : 'MALE';
 
     const [response] = await client.synthesizeSpeech({
       input: { text },
       voice: {
         languageCode: 'cmn-TW', // 台湾中国語
-        name: selectedVoice,
-        ssmlGender: gender,
+        name: DEFAULT_VOICE,
+        ssmlGender: DEFAULT_GENDER,
       },
       audioConfig: {
         audioEncoding: 'MP3',
-        speakingRate: 0.9, // 標準の速度
+        speakingRate: 0.9, // 少しゆっくり
         pitch: 0.0,
         volumeGainDb: 0.0,
       },
