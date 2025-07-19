@@ -8,6 +8,9 @@ import { phrases } from '../phrases';
 export default function Home() {
   const [isAudioSupported, setIsAudioSupported] = useState(true);
   const [isPlaying, setIsPlaying] = useState<number | null>(null);
+  const [playButtonLoading, setPlayButtonLoading] = useState<
+    Record<number, boolean>
+  >({}); // PlayButtonのloading状態を管理
 
   const [modalPhrase, setModalPhrase] = useState<(typeof phrases)[0] | null>(
     null
@@ -34,6 +37,8 @@ export default function Home() {
     try {
       if (phraseId !== undefined) {
         setIsPlaying(phraseId);
+        // PlayButtonのloading状態も設定
+        setPlayButtonLoading((prev) => ({ ...prev, [phraseId]: true }));
       }
 
       // 既存の音声を停止
@@ -68,11 +73,17 @@ export default function Home() {
 
       audio.onended = () => {
         setIsPlaying(null);
+        if (phraseId !== undefined) {
+          setPlayButtonLoading((prev) => ({ ...prev, [phraseId]: false }));
+        }
         URL.revokeObjectURL(audioUrl);
       };
 
       audio.onerror = () => {
         setIsPlaying(null);
+        if (phraseId !== undefined) {
+          setPlayButtonLoading((prev) => ({ ...prev, [phraseId]: false }));
+        }
         URL.revokeObjectURL(audioUrl);
         // フォールバックでWeb Speech APIを試行
         fallbackToWebSpeech(text);
@@ -82,6 +93,9 @@ export default function Home() {
     } catch (error) {
       console.error('Google TTS playback error:', error);
       setIsPlaying(null);
+      if (phraseId !== undefined) {
+        setPlayButtonLoading((prev) => ({ ...prev, [phraseId]: false }));
+      }
       // フォールバックでWeb Speech APIを使用
       fallbackToWebSpeech(text);
     }
@@ -203,7 +217,8 @@ export default function Home() {
                 </div>
                 <PlayButton
                   onClick={() => speakText(phrase.chinese, phrase.id)}
-                  disabled={!isAudioSupported}
+                  disabled={!isAudioSupported || isPlaying === phrase.id}
+                  loading={playButtonLoading[phrase.id] || false}
                   size={24}
                   ariaLabel='発音を聞く'
                   className='min-w-[48px] min-h-[48px] p-3'
@@ -241,8 +256,9 @@ export default function Home() {
               {modalPhrase.japanese}
             </div>
             <PlayButton
-              onClick={() => speakText(modalPhrase.chinese)}
-              disabled={!isAudioSupported}
+              onClick={() => speakText(modalPhrase.chinese, -1)}
+              disabled={!isAudioSupported || isPlaying !== null}
+              loading={playButtonLoading[-1] || false}
               size={24}
               ariaLabel='発音を聞く'
               className='mx-auto block min-w-[48px] min-h-[48px] p-3'
