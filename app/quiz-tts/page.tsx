@@ -4,7 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { PlayButton } from '@/components/ui/play-button';
 import { ProgressBar } from '@/components/ui/ProgressBar';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Suspense, useEffect, useRef, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { generateQuizSet, numberToChinese } from '../quiz/quizUtils';
 
 const LEVEL_LABELS = {
@@ -32,7 +32,6 @@ function QuizPageContent() {
   >([]);
   const [showResult, setShowResult] = useState(false);
   const [loading, setLoading] = useState(false);
-  const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
 
   useEffect(() => {
     setQuizzes(generateQuizSet(level, 7));
@@ -63,38 +62,45 @@ function QuizPageContent() {
   if (!quizzes.length) return <div>Loading...</div>;
   const quiz = quizzes[current];
 
+  const speakWithGoogleTTS = async (text: string) => {
+    try {
+      setLoading(true);
+
+      const response = await fetch('/api/tts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text }),
+      });
+
+      if (!response.ok) {
+        throw new Error(
+          `TTS API request failed: ${response.status} ${response.statusText}`
+        );
+      }
+
+      const audioBlob = await response.blob();
+      const audioUrl = URL.createObjectURL(audioBlob);
+      const audio = new Audio(audioUrl);
+
+      audio.onended = () => {
+        setLoading(false);
+        URL.revokeObjectURL(audioUrl);
+      };
+
+      audio.onerror = () => {
+        setLoading(false);
+        URL.revokeObjectURL(audioUrl);
+      };
+
+      audio.play();
+    } catch (error) {
+      console.error('Google TTS playback error:', error);
+      setLoading(false);
+    }
+  };
+
   const speak = () => {
-    setLoading(true);
-    const utter = new window.SpeechSynthesisUtterance(
-      numberToChinese(quiz.answer)
-    );
-    utter.lang = 'zh-CN';
-    utter.rate = 0.9;
-    utter.pitch = 1.0;
-    // 女性中国語ボイスを選択
-    const voices = window.speechSynthesis.getVoices();
-    const femaleZhVoice = voices.find(
-      (v) =>
-        v.lang.startsWith('zh') &&
-        (v.name.includes('女') ||
-          v.name.toLowerCase().includes('female') ||
-          v.voiceURI.toLowerCase().includes('female') ||
-          v.name.includes('Google 普通话（女声）') ||
-          v.name.includes('Google 中文（普通话）'))
-    );
-    if (femaleZhVoice) {
-      utter.voice = femaleZhVoice;
-    } else {
-      const zhVoice = voices.find((v) => v.lang.startsWith('zh'));
-      if (zhVoice) utter.voice = zhVoice;
-    }
-    utter.onend = () => setLoading(false);
-    utter.onerror = () => setLoading(false);
-    utteranceRef.current = utter;
-    if (window.speechSynthesis.speaking) {
-      window.speechSynthesis.cancel();
-    }
-    window.speechSynthesis.speak(utter);
+    speakWithGoogleTTS(numberToChinese(quiz.answer));
   };
 
   const handleSelect = (num: number) => {
@@ -124,6 +130,7 @@ function QuizPageContent() {
             size={24}
             className='min-w-[48px] min-h-[48px] p-3'
             disabled={loading}
+            loading={loading} // loading 状態を渡す
           />
           <div className='flex flex-col gap-3 w-full'>
             {quiz.choices.map((choice) => (
