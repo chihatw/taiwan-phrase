@@ -1,6 +1,7 @@
 'use client';
 
 import { speakWithGoogleTTS } from '@/lib/googleTTS';
+import { cn } from '@/lib/utils';
 import { useEffect, useRef, useState } from 'react';
 import { Button } from '../components/ui/button';
 import { PlayButton } from '../components/ui/play-button';
@@ -146,15 +147,14 @@ export default function Home() {
                   </svg>
                 </button>
                 <div className='flex-grow text-center sm:text-left phrase-content'>
-                  <div className='text-5xl text-gray-800 font-bold break-words leading-tight mb-2 chinese-text'>
-                    {phrase.chinese}
-                  </div>
-                  <div className='text-2xl text-blue-600 font-semibold mb-1 pinyin-text'>
-                    {phrase.pinyin}
-                  </div>
-                  <div className='text-lg text-neutral-500 japanese-text'>
-                    {phrase.japanese}
-                  </div>
+                  <PhraseTexts
+                    chinese={phrase.chinese}
+                    pinyin={phrase.pinyin}
+                    japanese={phrase.japanese}
+                    chineseClassName=' leading-tight mb-2'
+                    pinyinClassName=' mb-1'
+                    japaneseClassName=''
+                  />
                 </div>
                 <PlayButton
                   onClick={() => speakText(phrase.chinese, phrase.id)}
@@ -187,15 +187,14 @@ export default function Home() {
             >
               ×
             </button>
-            <div className='text-5xl text-gray-800 font-bold break-words leading-tight mb-4 text-center'>
-              {modalPhrase.chinese}
-            </div>
-            <div className='text-2xl text-blue-600 font-semibold mb-2 text-center'>
-              {modalPhrase.pinyin}
-            </div>
-            <div className='text-lg text-neutral-500 mb-4 text-center'>
-              {modalPhrase.japanese}
-            </div>
+            <PhraseTexts
+              chinese={modalPhrase.chinese}
+              pinyin={modalPhrase.pinyin}
+              japanese={modalPhrase.japanese}
+              chineseClassName='mb-4 text-center'
+              pinyinClassName='mb-2 text-center'
+              japaneseClassName='mb-4 text-center '
+            />
             <PlayButton
               onClick={() => speakText(modalPhrase.chinese, modalPhrase.id)}
               disabled={!speechSynthesisSupported}
@@ -214,3 +213,45 @@ export default function Home() {
     </div>
   );
 }
+
+const PhraseTexts = ({
+  chinese,
+  chineseClassName,
+  pinyin,
+  pinyinClassName,
+  japanese,
+  japaneseClassName,
+}: {
+  chinese: string;
+  pinyin: string;
+  japanese: string;
+  chineseClassName?: string;
+  pinyinClassName?: string;
+  japaneseClassName?: string;
+}) => {
+  return (
+    <>
+      <div
+        className={cn(
+          'text-5xl text-gray-800 font-bold break-words leading-tight ',
+          chineseClassName
+        )}
+      >
+        {chinese}
+      </div>
+      <div
+        className={cn('text-2xl text-blue-600 font-semibold ', pinyinClassName)}
+      >
+        {pinyin}
+      </div>
+      <div
+        className={cn(
+          'text-lg text-neutral-800 font-normal',
+          japaneseClassName
+        )}
+      >
+        {japanese}
+      </div>
+    </>
+  );
+};
