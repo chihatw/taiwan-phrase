@@ -1,4 +1,4 @@
-import { TextToSpeechClient } from '@google-cloud/text-to-speech';
+import { createTextToSpeechClient } from '@/utils/tts';
 import { NextRequest } from 'next/server';
 
 // 利用可能な音声オプション
@@ -15,33 +15,7 @@ import { NextRequest } from 'next/server';
 const DEFAULT_GENDER = 'FEMALE';
 const DEFAULT_VOICE = 'cmn-TW-Wavenet-A';
 
-// 認証情報を環境変数から取得
-let client: TextToSpeechClient;
-
-try {
-  // Base64でエンコードされた認証情報をデコード
-  const encodedCredentials = process.env.GOOGLE_APPLICATION_CREDENTIALS;
-  if (encodedCredentials) {
-    // Base64エンコードされたJSONの場合
-    const decodedCredentials = Buffer.from(
-      encodedCredentials,
-      'base64'
-    ).toString('utf-8');
-    const credentials = JSON.parse(decodedCredentials);
-
-    client = new TextToSpeechClient({
-      projectId: credentials.project_id,
-      credentials: {
-        client_email: credentials.client_email,
-        private_key: credentials.private_key,
-      },
-    });
-  }
-} catch (error) {
-  console.error('Failed to initialize Google Cloud client:', error);
-  // フォールバック: 認証なしで初期化（エラーは実行時に処理）
-  client = new TextToSpeechClient();
-}
+const client = createTextToSpeechClient();
 
 export async function POST(request: NextRequest) {
   try {
